@@ -29,6 +29,8 @@ const ViewerComponent = () => {
     const mapRef = useRef(null);
     const [open, setOpen] = React.useState(false);
     const [users, setUsers] = useState([]);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [suggestions, setSuggestions] = useState([]);
 
     const toggleDrawer = (newOpen) => () => {
         setOpen(newOpen);
@@ -47,6 +49,27 @@ const ViewerComponent = () => {
     useEffect(() => {
         fetchAllUsers().then(setUsers);
     }, []);
+
+
+
+    const handleSearch = () => {
+        const user = users.find(u =>
+            u.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+
+        if (user && mapRef.current) {
+            const coords = [
+                user.location.longitude || user.location._long,
+                user.location.latitude || user.location._lat,
+            ];
+
+            mapRef.current.flyTo({
+                center: coords,
+                zoom: 14,
+                speed: 1.2,
+            });
+        }
+    };
 
     useEffect(() => {
         if (!mapContainerRef.current) return;
@@ -322,16 +345,70 @@ const ViewerComponent = () => {
                             </Typography>
                             <div className="search">
                                 <div className="search-icon-wrapper">
-                                    <SearchIcon />
+                                    <SearchIcon onClick={handleSearch} style={{ cursor: "pointer" }} />
                                 </div>
                                 <input
                                     type="text"
                                     className="styled-input-base"
                                     placeholder="Търси създател по име"
                                     aria-label="search"
+                                    value={searchTerm}
+                                    onChange={e => {
+                                        const value = e.target.value;
+                                        setSearchTerm(value);
+                                        if (value.trim() === "") {
+                                            setSuggestions([]);
+                                        } else {
+                                            const matches = users.filter(u =>
+                                                u.name.toLowerCase().includes(value.toLowerCase())
+                                            );
+                                            setSuggestions(matches);
+                                        }
+                                    }}
+                                    onKeyDown={e => {
+                                        if (e.key === "Enter") handleSearch();
+                                    }}
                                     style={{ marginLeft: '10px', color: "primary.main" }}
                                 />
                             </div>
+                            {suggestions.length > 0 && (
+                                <div className="suggestions-list" style={{
+                                    position: "absolute",
+                                    top: "70px",
+                                    right: "90px",
+                                    background: "white",
+                                    boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                                    zIndex: 10,
+                                    width: "30%",
+                                    borderRadius: 4,
+                                    marginTop: 4,
+                                    maxHeight: 200,
+                                    overflowY: "auto"
+                                }}>
+                                    {suggestions.map(user => (
+                                        <div
+                                            key={user.id}
+                                            onClick={() => {
+                                                const coords = [
+                                                    user.location.longitude || user.location._long,
+                                                    user.location.latitude || user.location._lat,
+                                                ];
+                                                mapRef.current.flyTo({ center: coords, zoom: 14 });
+                                                setSearchTerm(user.name);
+                                                setSuggestions([]); // Hide after selection
+                                            }}
+                                            style={{
+                                                padding: "8px 12px",
+                                                cursor: "pointer",
+                                                borderBottom: "1px solid #eee",
+                                                color: "black"
+                                            }}
+                                        >
+                                            {user.name}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
 
                             {/* filter */}
                             <IconButton
