@@ -86,6 +86,10 @@ const ViewerComponent = () => {
                     id: user.id || index,
                     name: user.name,
                     photo: user.img,
+                    desc: user.desc,
+                    smt: user.smt,
+                    category: user.category,
+                    contact: user.contact
                 },
             })),
         };
@@ -154,7 +158,7 @@ const ViewerComponent = () => {
 
             nonClustered.forEach(f => {
                 const { coordinates } = f.geometry;
-                const { name, photo } = f.properties;
+                const { name, photo, desc, category, smt, contact } = f.properties;
 
                 const el = document.createElement("div");
                 el.style.backgroundImage = `url(${photo})`;
@@ -165,14 +169,56 @@ const ViewerComponent = () => {
                 el.style.border = "2px solid white";
                 el.style.boxShadow = "0 0 5px rgba(0,0,0,0.3)";
 
-                const popup = new maplibregl.Popup({ offset: 25 }).setHTML(
-                    `<strong>${name}</strong>`
-                );
+                const popupHTML = `
+                <div style="
+                  max-width: 200px;
+                  font-family: 'Roboto', sans-serif;
+                  border-radius: 8px;
+                  overflow: hidden
+                  background: #fff;
+                  color: #333;
+                ">
+                  <img 
+                    src="${photo}" 
+                    alt="${name}" 
+                    style="width: 100%; height: auto; object-fit: cover; border-radius: 10px;" 
+                  />
+                  <div style="padding: 11px;">
+                    <h3 style="margin: 0 0 8px; font-size: 16px;">${name}</h3>
+                    <p style="margin: 4px 0; font-size: 12px;"><strong>Social Media:</strong> ${smt}</p>
+                    <p style="margin: 4px 0; font-size: 12px;  "><strong>Category:</strong> ${category}</p>
+                    <p style="margin: 4px 0; font-size: 12px;"><strong>Contact:</strong> ${contact}</p>
+                    <p style="margin: 4px 0; font-size: 12px;"><strong>About:</strong> ${desc}</p>
+                    
+                  </div>
+                </div>
+              `;
+
+                const popup = new maplibregl.Popup({
+                    offset: 25,
+                    closeOnClick: true,
+                    closeButton: false,
+                    closeOnMove: false
+
+                }).setHTML(popupHTML);
 
                 const marker = new maplibregl.Marker({ element: el })
                     .setLngLat(coordinates)
                     .setPopup(popup)
                     .addTo(map); // Add first without popup
+
+                // Show popup on hover
+                el.addEventListener("mouseenter", () => {
+                    popup
+                        .setLngLat([coordinates[0], coordinates[1]])
+                        .setHTML(`<strong>${name}</strong>`)
+                        .addTo(mapRef.current);
+                });
+
+                // Hide popup on mouseout
+                el.addEventListener("mouseleave", () => {
+                    popup.remove();
+                });
 
                 markerElements.push(marker);
             });
