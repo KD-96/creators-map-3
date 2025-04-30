@@ -66,6 +66,7 @@ const ViewerComponent = () => {
         return () => map.remove();
     }, []);
 
+    // add locations
     useEffect(() => {
         if (!mapRef.current || users.length === 0) return;
 
