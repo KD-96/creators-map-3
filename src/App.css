@@ -1,0 +1,71 @@
+/* ****************** viwer component ************** */
+.viewer-container {
+}
+
+.header-container {
+  height: 60px;
+}
+
+.map-container {
+  width: 100%;
+  height: calc(100vh - 60px);
+  position: relative;
+}
+
+.search-bar {
+}
+
+.search {
+  position: relative;
+  border-radius: 8px;
+  background-color: var(--color-p-l);
+  margin-left: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  transition: width 0.3s ease;
+  color: var(--color-p);
+}
+
+.search:hover {
+  background-color: #e2e2e2;
+}
+
+@media (min-width: 600px) {
+  .search {
+    margin-left: 8px;
+    width: auto;
+  }
+
+  /* Focus effect */
+  .search input {
+    width: 300px;
+    transition: width 0.3s ease;
+  }
+
+  .search:focus-within input {
+    width: 350px;
+  }
+}
+
+.search-icon-wrapper {
+  padding: 0 16px;
+  height: 100%;
+  position: absolute;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.styled-input-base {
+  color: inherit;
+  width: 100%;
+  padding: 8px 8px 8px 40px; /* 1em + icon space */
+  border: none;
+  background: transparent;
+  outline: none;
+  font: inherit;
+}
+
+/* ***************** viewer page *************** */
