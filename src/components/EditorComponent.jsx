@@ -1,6 +1,16 @@
+/**
+ * todo: search locations
+ * todo: display if location avilabel
+ * todo: marke/ edit location : active drag marker
+ *      todo: delete marker
+ *      todo: if no marker : add new point
+ */
+
 import React, { useEffect, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+import MaplibreGeocoder from '@maplibre/maplibre-gl-geocoder';
+import '@maplibre/maplibre-gl-geocoder/dist/maplibre-gl-geocoder.css';
 
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
@@ -18,6 +28,9 @@ import Divider from '@mui/material/Divider';
 import MenuIcon from '@mui/icons-material/Menu';
 import MyLocationIcon from '@mui/icons-material/MyLocation';
 
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../services/firebase";
+
 import {
     Dialog,
     DialogTitle,
@@ -26,25 +39,27 @@ import {
     DialogActions,
 } from '@mui/material';
 
+import { socialM, subs, categories } from "../constants/dataOptions";
+
 const EditorComponent = ({ userEmail }) => {
     const mapContainerRef = useRef(null);
     const mapRef = useRef(null);
     const [tags, setTags] = useState([]);
 
-    const [selectedSocialM, setSelectedMovie] = React.useState(null);
+    const [selectedSocialM, setSelectedSocialM] = React.useState(null);
 
     const [openConfirm, setOpenConfirm] = useState(false);
 
-    const top100Films = [
-        { label: 'YouTube', value: 1972 },
-        { label: 'Instegrame', value: 1974 },
-        { label: 'FaceBook', value: 2008 },
-        { label: 'Twitter', value: 1957 },]
+    const [name, setName] = useState("");
+    const [desc, setDesc] = useState("");
+    const [category, setCategory] = useState(null);
+    const [smt, setSmt] = useState(null);
+    const [location, setLocation] = useState(null);
 
     const handleSelect = (event, newValue) => {
         if (newValue) {
             console.log('Selected movie:', newValue);
-            setSelectedMovie(newValue);
+            setSelectedSocialM(newValue);
         }
     };
 
@@ -79,6 +94,32 @@ const EditorComponent = ({ userEmail }) => {
     console.log(userEmail);
 
     useEffect(() => {
+        const fetchUserData = async () => {
+            if (!userEmail) return;
+
+            try {
+                const docRef = doc(db, "locations", userEmail);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    setName(data.name || "");
+                    setDesc(data.desc || "");
+                    setCategory(data.category || null);
+                    setSmt(data.smt || null);
+                    setLocation(data.location || null);
+                } else {
+                    console.log("No data found for this user.");
+                }
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+            }
+        };
+
+        fetchUserData();
+    }, [userEmail]);
+
+    useEffect(() => {
         if (!mapContainerRef.current) return;
 
         const map = new maplibregl.Map({
@@ -88,7 +129,60 @@ const EditorComponent = ({ userEmail }) => {
             zoom: 6,
         });
 
+        map.on('style.load', () => {
+            map.setProjection({
+                type: 'globe', // Set projection to globe
+            });
+        });
+
         mapRef.current = map;
+
+        const geocoderApi = {
+            forwardGeocode: async (config) => {
+                const features = [];
+                try {
+                    const request =
+                        `https://nominatim.openstreetmap.org/search?q=${config.query
+                        }&format=geojson&polygon_geojson=1&addressdetails=1`;
+                    const response = await fetch(request);
+                    const geojson = await response.json();
+                    for (const feature of geojson.features) {
+                        const center = [
+                            feature.bbox[0] +
+                            (feature.bbox[2] - feature.bbox[0]) / 2,
+                            feature.bbox[1] +
+                            (feature.bbox[3] - feature.bbox[1]) / 2
+                        ];
+                        const point = {
+                            type: 'Feature',
+                            geometry: {
+                                type: 'Point',
+                                coordinates: center
+                            },
+                            place_name: feature.properties.display_name,
+                            properties: feature.properties,
+                            text: feature.properties.display_name,
+                            place_type: ['place'],
+                            center
+                        };
+                        features.push(point);
+                    }
+                } catch (e) {
+                    console.error(`Failed to forwardGeocode with error: ${e}`);
+                }
+
+                return {
+                    features
+                };
+            }
+        };
+        map.addControl(
+            new MaplibreGeocoder(geocoderApi, {
+                maplibregl
+            }), "top-left"
+        );
+
+        map.addControl(new maplibregl.FullscreenControl(), "top-left");
 
         // Add zoom and rotation controls
         map.addControl(new maplibregl.NavigationControl(), "top-left");
@@ -135,7 +229,16 @@ const EditorComponent = ({ userEmail }) => {
                     *Your data will save under <strong>{userEmail}</strong>
                 </Typography>
                 <List>
-                    <TextField className='input-field-1' fullWidth size='small' id="outlined-basic" label="Name" placeholder='Name on the map' variant="outlined" />
+                    <TextField
+                        className='input-field-1'
+                        fullWidth size='small'
+                        id="outlined-basic"
+                        label="Name"
+                        placeholder='Name on the map'
+                        variant="outlined"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                    />
 
                     <TextField
                         className='input-field-1'
@@ -146,6 +249,8 @@ const EditorComponent = ({ userEmail }) => {
                         label="Description"
                         multiline
                         rows={3}
+                        value={desc}
+                        onChange={(e) => setDesc(e.target.value)}
                     />
                 </List>
                 <Divider />
@@ -153,20 +258,18 @@ const EditorComponent = ({ userEmail }) => {
                     <Autocomplete
                         className='input-field-1'
                         disablePortal
-                        options={top100Films}
-                        sx={{ borderRadius: '10px' }}
+                        options={socialM}
                         size="small"
+                        value={smt}
+                        onChange={(event, newValue) => setSmt(newValue)}
                         renderInput={(params) => <TextField {...params} label="Social Media Type" />}
-                        placeholder="Select a Social Media Type"
-                        getOptionLabel={(option) => option.label}
-                        onChange={handleSelect}
                     />
 
                     {selectedSocialM && (
                         <Autocomplete
                             className='input-field-1'
                             disablePortal
-                            options={top100Films}
+                            options={subs}
                             // onChange={handleSecondSelect}
                             size="small"
                             sx={{ marginTop: '10px' }}
@@ -177,7 +280,7 @@ const EditorComponent = ({ userEmail }) => {
                 </List>
                 <Divider />
                 <List>
-                    <Autocomplete
+                    {/* <Autocomplete
                         className='input-field-1'
                         multiple
                         freeSolo
@@ -206,6 +309,16 @@ const EditorComponent = ({ userEmail }) => {
                                 onKeyDown={handleKeyDown}
                             />
                         )}
+                    /> */}
+
+                    <Autocomplete
+                        className='input-field-1'
+                        disablePortal
+                        options={categories}
+                        size="small"
+                        value={category}
+                        onChange={(event, newValue) => setSmt(newValue)}
+                        renderInput={(params) => <TextField {...params} label="Category" />}
                     />
                 </List>
                 <Divider />
