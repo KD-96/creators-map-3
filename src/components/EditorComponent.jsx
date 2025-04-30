@@ -26,7 +26,7 @@ import {
     DialogActions,
 } from '@mui/material';
 
-const EditorComponent = () => {
+const EditorComponent = ({ userEmail }) => {
     const mapContainerRef = useRef(null);
     const mapRef = useRef(null);
     const [tags, setTags] = useState([]);
@@ -45,7 +45,6 @@ const EditorComponent = () => {
         if (newValue) {
             console.log('Selected movie:', newValue);
             setSelectedMovie(newValue);
-
         }
     };
 
@@ -71,14 +70,13 @@ const EditorComponent = () => {
         setOpenConfirm(false);
         // Proceed with deletion logic
         console.log("Item deleted!");
-
     };
 
     const handleCancelDelete = () => {
         setOpenConfirm(false);
-
     };
 
+    console.log(userEmail);
 
     useEffect(() => {
         if (!mapContainerRef.current) return;
@@ -132,19 +130,22 @@ const EditorComponent = () => {
                 <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, fontWeight: '600', marginBottom: 1 }}>
                     Editor Panel
                 </Typography>
+
+                <Typography color="background.light" fontSize={10} fontStyle={'italic'} variant="subtitle2">
+                    *Your data will save under <strong>{userEmail}</strong>
+                </Typography>
                 <List>
                     <TextField className='input-field-1' fullWidth size='small' id="outlined-basic" label="Name" placeholder='Name on the map' variant="outlined" />
 
                     <TextField
-
                         className='input-field-1'
                         fullWidth
+                        size="small"
                         sx={{ marginTop: '10px', }}
                         id="outlined-multiline-static"
                         label="Description"
                         multiline
-                        rows={4}
-
+                        rows={3}
                     />
                 </List>
                 <Divider />

@@ -1,8 +1,10 @@
 // src/pages/EditDataPage.jsx
 import React from "react";
+import { useEffect, useState } from "react";
 import { auth } from "../services/firebase";
 import { signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
+import { onAuthStateChanged } from "firebase/auth";
 
 import { IconButton } from "@mui/material";
 import { Logout } from "@mui/icons-material";
@@ -11,6 +13,7 @@ import EditorComponent from "../components/EditorComponent";
 
 const EditorPage = () => {
     const navigate = useNavigate();
+    const [userEmail, setUserEmail] = useState(null);
 
     const handleLogout = async () => {
         try {
@@ -20,6 +23,18 @@ const EditorPage = () => {
             console.error("Error during logout:", error);
         }
     };
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                setUserEmail(user.email); // Save Gmail address
+            } else {
+                navigate("/"); // If not logged in, redirect to home/login
+            }
+        });
+
+        return () => unsubscribe(); // Cleanup listener on unmount
+    }, []);
 
     return (
         <div>
@@ -40,7 +55,7 @@ const EditorPage = () => {
                     fontSize: 30, color: "primary.main"
                 }} />
             </IconButton>
-            <EditorComponent />
+            <EditorComponent userEmail={userEmail} />
 
         </div>
     );
