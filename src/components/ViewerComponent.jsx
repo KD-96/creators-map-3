@@ -162,8 +162,8 @@ const ViewerComponent = () => {
 
                 const el = document.createElement("div");
                 el.style.backgroundImage = `url(${photo})`;
-                el.style.width = "40px";
-                el.style.height = "40px";
+                el.style.width = "50px";
+                el.style.height = "50px";
                 el.style.backgroundSize = "cover";
                 el.style.borderRadius = "50%";
                 el.style.border = "2px solid white";
@@ -198,27 +198,34 @@ const ViewerComponent = () => {
                     offset: 25,
                     closeOnClick: true,
                     closeButton: false,
-                    closeOnMove: false
+
 
                 }).setHTML(popupHTML);
+
+                const hoverPopup = new maplibregl.Popup({
+                    offset: 25,
+                    closeButton: false,
+                    closeOnClick: true,
+                    closeOnMove: true,
+                });
 
                 const marker = new maplibregl.Marker({ element: el })
                     .setLngLat(coordinates)
                     .setPopup(popup)
                     .addTo(map); // Add first without popup
 
-                // Show popup on hover
+                // Show name-only popup on hover
                 el.addEventListener("mouseenter", () => {
-                    popup
-                        .setLngLat([coordinates[0], coordinates[1]])
+                    hoverPopup
+                        .setLngLat(coordinates)
                         .setHTML(`<strong>${name}</strong>`)
                         .addTo(mapRef.current);
                 });
 
-                // Hide popup on mouseout
                 el.addEventListener("mouseleave", () => {
-                    popup.remove();
+                    hoverPopup.remove();
                 });
+
 
                 markerElements.push(marker);
             });
