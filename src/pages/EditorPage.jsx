@@ -4,6 +4,9 @@ import { auth } from "../services/firebase";
 import { signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 
+import { IconButton } from "@mui/material";
+import { Logout } from "@mui/icons-material";
+
 import EditorComponent from "../components/EditorComponent";
 
 const EditorPage = () => {
@@ -20,11 +23,25 @@ const EditorPage = () => {
 
     return (
         <div>
-            <EditorComponent />
-            <h1>EditorPage
 
-            </h1>
-            <button onClick={handleLogout}>Logout</button>
+            <IconButton
+                className="add-data-button"
+                size="large"
+                onClick={handleLogout}
+                sx={{
+                    position: "absolute", zIndex: 1000, top: 5, right: 10, bgcolor: 'white', width: 55,         // Set width
+                    height: 55, "&:hover": {
+                        bgcolor: "primary.light",
+                    },
+
+                }}
+            >
+                <Logout sx={{
+                    fontSize: 30, color: "primary.main"
+                }} />
+            </IconButton>
+            <EditorComponent />
+
         </div>
     );
 };

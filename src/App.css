@@ -69,3 +69,31 @@
 }
 
 /* ***************** viewer page *************** */
+
+/* ****************** Editor component ***************** */
+.edit-page-form {
+  position: absolute;
+  padding: 20px;
+  z-index: 998;
+  right: 0px;
+  top: 60px;
+  margin: 20px;
+  background-color: white; /* Optional: for better mobile appearance */
+  width: 300px; /* Default width */
+  max-height: calc(100vh - 70px);
+  overflow-y: auto;
+  border-radius: 8px;
+}
+
+@media screen and (max-width: 600px) {
+  .edit-page-form {
+    position: absolute;
+    z-index: 998;
+    overflow-y: auto;
+    margin: 0;
+    width: 100%;
+    bottom: 0;
+    top: 50%;
+    scale: 0.9;
+  }
+}
