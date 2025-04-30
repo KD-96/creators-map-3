@@ -68,36 +68,131 @@ const ViewerComponent = () => {
 
 
     useEffect(() => {
-        if (!mapRef.current || users.length === 0) return;
+        const map = mapRef.current;
+        if (!map || users.length === 0) return;
 
-        users.forEach(user => {
-            const el = document.createElement("div");
-            el.style.backgroundImage = `url(${user.img})`;
-            el.style.width = "50px";  // Adjust size as needed
-            el.style.height = "50px"; // Adjust size as needed
-            el.style.backgroundSize = "cover";
-            el.style.borderRadius = "50%";  // Makes the div circular
-            el.style.border = "2px solid white";  // Optional border for contrast
-            el.style.boxShadow = "0 0 5px rgba(0,0,0,0.3)";
+        const geojson = {
+            type: "FeatureCollection",
+            features: users.map((user, index) => ({
+                type: "Feature",
+                geometry: {
+                    type: "Point",
+                    coordinates: [
+                        user.location.longitude || user.location._long,
+                        user.location.latitude || user.location._lat,
+                    ],
+                },
+                properties: {
+                    id: user.id || index,
+                    name: user.name,
+                    photo: user.img,
+                },
+            })),
+        };
 
-            const popup = new maplibregl.Popup({ offset: 25 }).setHTML(
-                `<strong>${user.name}</strong>`
-            );
+        // Remove existing source and layers if they exist
+        if (map.getSource("users")) {
+            map.removeLayer("clusters");
+            map.removeLayer("cluster-count");
+            map.removeSource("users");
+        }
 
-            // Safely extract lat/lng from GeoPoint
-            const lat = user.location.latitude || user.location._lat;
-            const lng = user.location.longitude || user.location._long;
+        map.addSource("users", {
+            type: "geojson",
+            data: geojson,
+            cluster: true,
+            clusterRadius: 50,
+            clusterMaxZoom: 14,
+        });
 
-            if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
-                console.warn("Invalid location for user:", user);
-                return;
+        // Add cluster layer
+        map.addLayer({
+            id: "clusters",
+            type: "circle",
+            source: "users",
+            filter: ["has", "point_count"],
+            paint: {
+                "circle-color": "#00BCD4",
+                "circle-radius": [
+                    "step",
+                    ["get", "point_count"],
+                    20, 10, 30, 50, 40
+                ],
+                "circle-stroke-width": 2,
+                "circle-stroke-color": "#fff"
+            }
+        });
+
+        // Add cluster label
+        map.addLayer({
+            id: "cluster-count",
+            type: "symbol",
+            source: "users",
+            filter: ["has", "point_count"],
+            layout: {
+                "text-field": "{point_count_abbreviated}",
+                "text-size": 12,
+
+            },
+        });
+
+        // Clean up previous markers
+        const markerElements = [];
+
+        function updateMarkers() {
+            // Fully remove old markers
+            while (markerElements.length) {
+                const m = markerElements.pop();
+                m.remove();
             }
 
-            new maplibregl.Marker({ element: el })
-                .setLngLat([lng, lat])  // MapLibre expects [lng, lat]
-                .setPopup(popup)
-                .addTo(mapRef.current);
-        });
+            const features = map.querySourceFeatures("users", {
+                sourceLayer: "users",
+            });
+
+            const nonClustered = features.filter(f => !f.properties.point_count);
+
+            nonClustered.forEach(f => {
+                const { coordinates } = f.geometry;
+                const { name, photo } = f.properties;
+
+                const el = document.createElement("div");
+                el.style.backgroundImage = `url(${photo})`;
+                el.style.width = "40px";
+                el.style.height = "40px";
+                el.style.backgroundSize = "cover";
+                el.style.borderRadius = "50%";
+                el.style.border = "2px solid white";
+                el.style.boxShadow = "0 0 5px rgba(0,0,0,0.3)";
+
+                const popup = new maplibregl.Popup({ offset: 25 }).setHTML(
+                    `<strong>${name}</strong>`
+                );
+
+                const marker = new maplibregl.Marker({ element: el })
+                    .setLngLat(coordinates)
+                    .setPopup(popup)
+                    .addTo(map); // Add first without popup
+
+                markerElements.push(marker);
+            });
+        }
+
+        map.on("moveend", updateMarkers);
+
+        // After geojson is created
+        const coordinates = geojson.features.map(f => f.geometry.coordinates);
+
+        // Only zoom if there are valid coordinates
+        if (coordinates.length > 0) {
+            const bounds = coordinates.reduce((b, coord) => b.extend(coord), new maplibregl.LngLatBounds(coordinates[0], coordinates[0]));
+            map.fitBounds(bounds, { padding: 150, maxZoom: 12 }); // Adjust padding and maxZoom as needed
+        }
+
+        return () => {
+            map.off("moveend", updateMarkers);
+            markerElements.forEach(m => m.remove());
+        };
     }, [users]);
 
 
@@ -118,7 +213,6 @@ const ViewerComponent = () => {
                     onChange={handleSelect}
 
                 />
-
 
                 <Autocomplete
                     disablePortal
