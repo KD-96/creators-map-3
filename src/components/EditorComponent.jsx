@@ -41,6 +41,9 @@ import {
 
 import { socialM, subs, categories } from "../constants/dataOptions";
 
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
+
 const EditorComponent = ({ userEmail }) => {
     const mapContainerRef = useRef(null);
     const mapRef = useRef(null);
@@ -55,6 +58,12 @@ const EditorComponent = ({ userEmail }) => {
     const [category, setCategory] = useState(null);
     const [smt, setSmt] = useState(null);
     const [location, setLocation] = useState(null);
+    const [isLocation, setIsLocation] = useState(false);
+    const [marker, setMarker] = useState(null);
+    const [isDrawing, setIsDrawing] = useState(false);
+
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState("");
 
     const handleSelect = (event, newValue) => {
         if (newValue) {
@@ -101,6 +110,8 @@ const EditorComponent = ({ userEmail }) => {
                 const docRef = doc(db, "locations", userEmail);
                 const docSnap = await getDoc(docRef);
 
+
+
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     setName(data.name || "");
@@ -108,6 +119,10 @@ const EditorComponent = ({ userEmail }) => {
                     setCategory(data.category || null);
                     setSmt(data.smt || null);
                     setLocation(data.location || null);
+
+                    if (data.location) {
+                        setIsLocation(true)
+                    }
                 } else {
                     console.log("No data found for this user.");
                 }
@@ -189,6 +204,62 @@ const EditorComponent = ({ userEmail }) => {
 
         return () => map.remove();
     }, []);
+
+    // 👇 Add marker after map & location are both ready
+    useEffect(() => {
+        if (mapRef.current && location) {
+            const lng = location.longitude || location.lng?.();  // fallback if needed
+            const lat = location.latitude || location.lat?.();
+
+            if (!lng || !lat) return;
+
+            const marker = new maplibregl.Marker()
+                .setLngLat([lng, lat])
+                .addTo(mapRef.current);
+
+            mapRef.current.flyTo({
+                center: [lng, lat],
+                zoom: 12,
+                essential: true,
+            });
+
+            return () => marker.remove();
+        }
+    }, [location]);
+
+    const handleMarkNewLocation = () => {
+        setSnackbarMessage("Click on the new place to change the location.");
+        setSnackbarOpen(true);
+
+        if (marker) {
+            marker.remove(); // Remove current marker
+            setMarker(null);
+        }
+
+        setIsDrawing(true);
+
+        const map = mapRef.current;
+
+        const onClick = (e) => {
+            const lngLat = e.lngLat;
+
+            // Add new marker
+            const newMarker = new maplibregl.Marker().setLngLat(lngLat).addTo(map);
+            setMarker(newMarker);
+
+            // Save location
+            setLocation({ latitude: lngLat.lat, longitude: lngLat.lng });
+
+            // Deactivate drawing mode
+            setIsDrawing(false);
+
+            // Remove click listener
+            map.off('click', onClick);
+        };
+
+        // Add one-time click listener
+        map.on('click', onClick);
+    };
 
 
     return (
@@ -322,10 +393,19 @@ const EditorComponent = ({ userEmail }) => {
                     />
                 </List>
                 <Divider />
-                <Button fullWidth variant='outlined' sx={{ borderRadius: '10px', marginTop: '10px', marginBottom: "10px" }}>
-                    <MyLocationIcon sx={{ mr: 1 }} />
-                    Mark the Location
-                </Button>
+                {isLocation ? (
+                    <Button fullWidth variant='outlined'
+                        onClick={handleMarkNewLocation}
+                        sx={{ borderRadius: '10px', marginTop: '10px', marginBottom: "10px" }}>
+                        <MyLocationIcon sx={{ mr: 1 }} />
+                        Change location
+                    </Button>
+                ) : (
+                    <Button fullWidth variant='outlined' sx={{ borderRadius: '10px', marginTop: '10px', marginBottom: "10px" }}>
+                        <MyLocationIcon sx={{ mr: 1 }} />
+                        Mark the Location
+                    </Button>
+                )}
                 <Divider />
 
                 <Button fullWidth onClick={handleSubmit} variant="contained" color="primary" sx={{ alignItems: 'center', marginTop: '10px', borderRadius: '10px' }} >Save</Button>
@@ -351,6 +431,17 @@ const EditorComponent = ({ userEmail }) => {
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={5000}
+                onClose={() => setSnackbarOpen(false)}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert onClose={() => setSnackbarOpen(false)} severity="info" sx={{ width: '100%' }}>
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
 
             <div
                 ref={mapContainerRef}
