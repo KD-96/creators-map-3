@@ -47,7 +47,7 @@ const ViewerComponent = () => {
     };
 
     const handleSubmit = () => {
-        // setOpen(false);
+        setOpen(false);
 
         const filtered = users.filter(user => {
             const matchSocial = selectedSocialMedia ? user.smt === selectedSocialMedia.label : true;
@@ -415,8 +415,8 @@ const ViewerComponent = () => {
                                         if (value.trim() === "") {
                                             setSuggestions([]);
                                         } else {
-                                            const matches = users.find(u =>
-                                                u.name.toLowerCase().includes(searchTerm.toLowerCase())
+                                            const matches = users.filter(u =>
+                                                u.name && u.name.toLowerCase().includes(value.toLowerCase())
                                             );
                                             setSuggestions(matches);
                                         }
