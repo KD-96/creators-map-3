@@ -194,35 +194,58 @@ const ViewerComponent = () => {
 
                 const popupHTML = `
                 <div style="
-                  max-width: 200px;
+                  max-width: 280px;
                   font-family: 'Roboto', sans-serif;
-                  border-radius: 8px;
-                  overflow: hidden
+            
+                  overflow: hidden;
                   background: #fff;
                   color: #333;
+                 
+                  padding: 16px;
                 ">
-                  <img 
-                    src="${photo}" 
-                    alt="${name}" 
-                    style="width: 100%; height: auto; object-fit: cover; border-radius: 10px;" 
-                  />
-                  <div style="padding: 11px;">
-                    <h3 style="margin: 0 0 8px; font-size: 16px;">${name}</h3>
-                    <p style="margin: 4px 0; font-size: 12px;"><strong>Social Media:</strong> ${smt}</p>
-                    <p style="margin: 4px 0; font-size: 12px;  "><strong>Category:</strong> ${category}</p>
-                    <p style="margin: 4px 0; font-size: 12px;"><strong>Contact:</strong> ${contact}</p>
-                    <p style="margin: 4px 0; font-size: 12px;"><strong>About:</strong> ${desc}</p>
-                    
+                  <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                    <img 
+                      src="${photo}" 
+                      alt="${name}" 
+                      style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; margin-right: 12px;" 
+                    />
+                    <div>
+                      <div style="font-size: 16px; font-weight: 600;">${name}</div>
+                      <div style="
+                        display: inline-block;
+                        background: #e0f2f1;
+                        color: #00796b;
+                        font-size: 12px;
+                        padding: 2px 8px;
+                        border-radius: 12px;
+                        margin-top: 4px;
+                      ">${category}</div>
+                    </div>
+                  </div>
+              
+                  <div style="font-size: 13px; margin-bottom: 8px;">
+                    <strong>Social Media:</strong> ${smt}
+                  </div>
+              
+                  <div style="font-size: 13px; margin-bottom: 8px; display: flex; align-items: center;">
+                    <svg style="width: 16px; height: 16px; margin-right: 6px;" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M6.62 10.79a15.91 15.91 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21 11.72 11.72 0 003.67.58 1 1 0 011 1v3.17a1 1 0 01-1 1A16 16 0 014 5a1 1 0 011-1h3.17a1 1 0 011 1 11.72 11.72 0 00.58 3.67 1 1 0 01-.21 1.11l-2.2 2.2z"/>
+                    </svg>
+                    ${contact}
+                  </div>
+              
+                  <div style="font-size: 13px; line-height: 1.5; color: #555;">
+                    <strong>About:</strong><br/>
+                    ${desc}
                   </div>
                 </div>
               `;
+
 
                 const popup = new maplibregl.Popup({
                     offset: 25,
                     closeOnClick: true,
                     closeButton: false,
-
-
                 }).setHTML(popupHTML);
 
                 const hoverPopup = new maplibregl.Popup({

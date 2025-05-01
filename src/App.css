@@ -68,6 +68,10 @@
   font: inherit;
 }
 
+.maplibregl-popup-content {
+  border-radius: 10px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+}
 /* ***************** viewer page *************** */
 
 /* ****************** Editor component ***************** */
