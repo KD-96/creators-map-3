@@ -1,0 +1,25 @@
+{
+    "users": {
+      "user1": {
+        "name": "Alice",
+        "smt": "tiktok",
+        "category": "fashion",
+        "contact": "111222",
+        "location": {
+          "latitude": 42.9,
+          "longitude": 25.3
+        }
+      },
+      "user2": {
+        "name": "Bob",
+        "smt": "facebook",
+        "category": "sports",
+        "contact": "333444",
+        "location": {
+          "latitude": 43.0,
+          "longitude": 25.6
+        }
+      }
+    }
+  }
+  

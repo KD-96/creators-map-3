@@ -32,6 +32,10 @@ const ViewerComponent = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [suggestions, setSuggestions] = useState([]);
 
+    const [selectedSocialMedia, setSelectedSocialMedia] = useState(null);
+    const [selectedCategory, setSelectedCategory] = useState(null);
+    const [filteredUsers, setFilteredUsers] = useState([]);
+
     const toggleDrawer = (newOpen) => () => {
         setOpen(newOpen);
     };
@@ -43,7 +47,15 @@ const ViewerComponent = () => {
     };
 
     const handleSubmit = () => {
-        setOpen(false);
+        // setOpen(false);
+
+        const filtered = users.filter(user => {
+            const matchSocial = selectedSocialMedia ? user.smt === selectedSocialMedia.label : true;
+            const matchCategory = selectedCategory ? user.category === selectedCategory.label : true;
+            return matchSocial && matchCategory;
+        });
+
+        setFilteredUsers(filtered);
     };
 
     useEffect(() => {
@@ -65,7 +77,7 @@ const ViewerComponent = () => {
 
             mapRef.current.flyTo({
                 center: coords,
-                zoom: 14,
+                zoom: 8,
                 speed: 1.2,
             });
         }
@@ -76,9 +88,16 @@ const ViewerComponent = () => {
 
         const map = new maplibregl.Map({
             container: mapContainerRef.current,
-            style: "https://demotiles.maplibre.org/style.json", // Free open-source style
+            style: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json", // Free open-source style
             center: [25.4858, 42.7339], // Centered on Bulgaria
-            zoom: 6,
+
+            maxZoom: 10,
+        });
+
+        map.on('style.load', () => {
+            map.setProjection({
+                type: 'globe',
+            });
         });
 
         mapRef.current = map;
@@ -94,9 +113,11 @@ const ViewerComponent = () => {
         const map = mapRef.current;
         if (!map || users.length === 0) return;
 
+        const activeUsers = filteredUsers.length > 0 ? filteredUsers : users;
+
         const geojson = {
             type: "FeatureCollection",
-            features: users.map((user, index) => ({
+            features: activeUsers.map((user, index) => ({
                 type: "Feature",
                 geometry: {
                     type: "Point",
@@ -128,7 +149,7 @@ const ViewerComponent = () => {
             type: "geojson",
             data: geojson,
             cluster: true,
-            clusterRadius: 50,
+            clusterRadius: 40,
             clusterMaxZoom: 14,
         });
 
@@ -183,8 +204,10 @@ const ViewerComponent = () => {
                 const { coordinates } = f.geometry;
                 const { name, photo, desc, category, smt, contact } = f.properties;
 
+                const imageUrl = photo ? photo : "/imgs/default-avatar.jpg";
+
                 const el = document.createElement("div");
-                el.style.backgroundImage = `url(${photo})`;
+                el.style.backgroundImage = `url(${imageUrl})`;
                 el.style.width = "50px";
                 el.style.height = "50px";
                 el.style.backgroundSize = "cover";
@@ -196,11 +219,9 @@ const ViewerComponent = () => {
                 <div style="
                   max-width: 280px;
                   font-family: 'Roboto', sans-serif;
-            
                   overflow: hidden;
                   background: #fff;
                   color: #333;
-                 
                   padding: 16px;
                 ">
                   <div style="display: flex; align-items: center; margin-bottom: 12px;">
@@ -285,14 +306,14 @@ const ViewerComponent = () => {
         // Only zoom if there are valid coordinates
         if (coordinates.length > 0) {
             const bounds = coordinates.reduce((b, coord) => b.extend(coord), new maplibregl.LngLatBounds(coordinates[0], coordinates[0]));
-            map.fitBounds(bounds, { padding: 150, maxZoom: 12 }); // Adjust padding and maxZoom as needed
+            map.fitBounds(bounds, { padding: 50, maxZoom: 14, duration: 3000 }); // Adjust padding and maxZoom as needed
         }
 
         return () => {
             map.off("moveend", updateMarkers);
             markerElements.forEach(m => m.remove());
         };
-    }, [users]);
+    }, [users, filteredUsers]);
 
 
     const DrawerList = (
@@ -309,8 +330,7 @@ const ViewerComponent = () => {
                     renderInput={(params) => <TextField {...params} label="Social Media" />}
                     placeholder="Select a Social Media Type"
                     getOptionLabel={(option) => option.label}
-                    onChange={handleSelect}
-
+                    onChange={(event, value) => setSelectedSocialMedia(value)}
                 />
 
                 <Autocomplete
@@ -330,13 +350,26 @@ const ViewerComponent = () => {
                     sx={{ padding: '10px' }}
                     size="small"
                     renderInput={(params) => <TextField {...params} label="Category" />}
-                    onChange={(event, value) => console.log("Selected category:", value)}
+                    onChange={(event, value) => setSelectedCategory(value)}
+
                 />
 
             </List>
             <Divider />
 
             <Button onClick={handleSubmit} variant="contained" color="primary" sx={{ width: '90%', marginLeft: '10px', alignItems: 'center', marginTop: '10px' }} >Apply</Button>
+            <Button
+                onClick={() => {
+                    setSelectedSocialMedia(null);
+                    setSelectedCategory(null);
+                    setFilteredUsers([]);
+                }}
+                variant="outlined"
+                color="secondary"
+                sx={{ width: '90%', marginLeft: '10px', marginTop: '10px' }}
+            >
+                Clear Filters
+            </Button>
         </Box>
     );
 
@@ -382,8 +415,8 @@ const ViewerComponent = () => {
                                         if (value.trim() === "") {
                                             setSuggestions([]);
                                         } else {
-                                            const matches = users.filter(u =>
-                                                u.name.toLowerCase().includes(value.toLowerCase())
+                                            const matches = users.find(u =>
+                                                u.name.toLowerCase().includes(searchTerm.toLowerCase())
                                             );
                                             setSuggestions(matches);
                                         }
