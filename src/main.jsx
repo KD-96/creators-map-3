@@ -14,12 +14,12 @@ const currentDomain = window.location.hostname;
 //   throw new Error("Blocked: Direct access");
 // }
 
-// // Block iframe from unknown domains
-// const referrer = document.referrer;
-// if (!referrer.includes(allowedParentDomain)) {
-//   document.body.innerHTML = "<h2>Unauthorized embedding</h2>";
-//   throw new Error("Blocked: Unauthorized embedding");
-// }
+// Block iframe from unknown domains
+const referrer = document.referrer;
+if (!referrer.includes(allowedParentDomain)) {
+  document.body.innerHTML = "<h2>Unauthorized embedding</h2>";
+  throw new Error("Blocked: Unauthorized embedding");
+}
 
 if (!allowedDomains.some(domain => currentDomain.includes(domain))) {
   document.body.innerHTML = "<h2>Access denied</h2>";
