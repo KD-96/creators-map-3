@@ -6,20 +6,21 @@ import { ThemeProvider, CssBaseline } from '@mui/material'
 import Theme from './themes/Theme.jsx'
 
 const allowedDomains = ["localhost", "creators-map-3.vercel.app"];
-const allowedParentDomain = ["w3schools"];
+const allowedParentDomain = ["w3schools"]; // ** add allowed iframe domain
 const currentDomain = window.location.hostname;
 
+// ** Use this for block direct access
 // if (window.top === window.self) {
 //   document.body.innerHTML = "<h2>Direct access not allowed</h2>";
 //   throw new Error("Blocked: Direct access");
 // }
 
-// Block iframe from unknown domains
-const referrer = document.referrer;
-if (!referrer.includes(allowedParentDomain)) {
-  document.body.innerHTML = "<h2>Unauthorized embedding</h2>";
-  throw new Error("Blocked: Unauthorized embedding");
-}
+// ** Use this for block iframe from unknown domains
+// const referrer = document.referrer;
+// if (!referrer.includes(allowedParentDomain)) {
+//   document.body.innerHTML = "<h2>Unauthorized embedding</h2>";
+//   throw new Error("Blocked: Unauthorized embedding");
+// }
 
 if (!allowedDomains.some(domain => currentDomain.includes(domain))) {
   document.body.innerHTML = "<h2>Access denied</h2>";
