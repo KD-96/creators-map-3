@@ -6,7 +6,7 @@ import { ThemeProvider, CssBaseline } from '@mui/material'
 import Theme from './themes/Theme.jsx'
 
 const allowedDomains = ["localhost"];
-const allowedParentDomain = ["https://iframetester.com/"];
+const allowedParentDomain = ["iframetester.com"];
 const currentDomain = window.location.hostname;
 
 if (window.top === window.self) {
