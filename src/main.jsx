@@ -5,7 +5,7 @@ import App from './App.jsx'
 import { ThemeProvider, CssBaseline } from '@mui/material'
 import Theme from './themes/Theme.jsx'
 
-const allowedDomains = ["localhost", "iframetester.com", "creators-map-3.vercel.app"];
+const allowedDomains = ["localhost", "creators-map-3.vercel.app"];
 const allowedParentDomain = ["iframetester.com"];
 const currentDomain = window.location.hostname;
 
