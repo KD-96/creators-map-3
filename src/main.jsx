@@ -6,7 +6,7 @@ import { ThemeProvider, CssBaseline } from '@mui/material'
 import Theme from './themes/Theme.jsx'
 
 const allowedDomains = ["localhost", "creators-map-3.vercel.app"];
-const allowedParentDomain = ["developer.mozilla.org"];
+const allowedParentDomain = ["w3schools"];
 const currentDomain = window.location.hostname;
 
 // if (window.top === window.self) {
