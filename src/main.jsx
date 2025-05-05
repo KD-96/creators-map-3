@@ -5,7 +5,7 @@ import App from './App.jsx'
 import { ThemeProvider, CssBaseline } from '@mui/material'
 import Theme from './themes/Theme.jsx'
 
-const allowedDomains = ["localhost", "creators-map-3.vercel.app"];
+const allowedDomains = ["localhost", "creators-map-3.vercel.app"]; // ** add allowed domains
 const allowedParentDomain = ["w3schools"]; // ** add allowed iframe domain
 const currentDomain = window.location.hostname;
 
@@ -22,6 +22,7 @@ const currentDomain = window.location.hostname;
 //   throw new Error("Blocked: Unauthorized embedding");
 // }
 
+// ** Use this for block unknown domains
 if (!allowedDomains.some(domain => currentDomain.includes(domain))) {
   document.body.innerHTML = "<h2>Access denied</h2>";
   throw new Error("Unauthorized domain");
