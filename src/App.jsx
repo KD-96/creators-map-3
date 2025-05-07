@@ -1,4 +1,8 @@
 // src/App.js
+
+/**
+ * TODO: secure write access -> allow read, write: if request.auth != null && request.auth.token.email == docId;
+ */
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "./App.css";

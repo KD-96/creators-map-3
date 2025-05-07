@@ -88,7 +88,11 @@ const ViewerComponent = () => {
 
         const map = new maplibregl.Map({
             container: mapContainerRef.current,
-            style: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json", // Free open-source style
+            style: "https://tiles.stadiamaps.com/styles/osm_bright.json",
+            // style: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
+            // style: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
+            // style: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
+
             center: [25.4858, 42.7339], // Centered on Bulgaria
 
             maxZoom: 10,
