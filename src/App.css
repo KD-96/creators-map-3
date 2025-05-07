@@ -84,7 +84,7 @@
   margin: 20px;
   background-color: white; /* Optional: for better mobile appearance */
   width: 300px; /* Default width */
-  max-height: calc(100vh - 70px);
+  max-height: calc(100vh - 100px);
   overflow-y: auto;
   border-radius: 8px;
 }

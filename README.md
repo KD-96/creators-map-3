@@ -1,8 +1,12 @@
 # Base maps
 
 https://demotiles.maplibre.org/style.json
-https://basemaps.cartocdn.com/gl/positron-gl-style/style.json
+
 https://tiles.stadiamaps.com/styles/osm_bright.json
+
+https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json
+https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json
+https://basemaps.cartocdn.com/gl/positron-gl-style/style.json
 
 # React + Vite
 

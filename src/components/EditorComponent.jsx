@@ -1,10 +1,3 @@
-/**
- * todo: search locations
- * todo: display if location avilabel
- * todo: marke/ edit location : active drag marker
- *      todo: delete marker
- *      todo: if no marker : add new point
- */
 
 import React, { useEffect, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
@@ -28,8 +21,16 @@ import Divider from '@mui/material/Divider';
 import MenuIcon from '@mui/icons-material/Menu';
 import MyLocationIcon from '@mui/icons-material/MyLocation';
 
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../services/firebase";
+import { saveUserData } from "../services/saveData";
+import {
+    uploadUserImage,
+    deleteUserImage,
+    updateUserImageUrl
+} from "../services/userImageService";
+import { deleteUserDataAndImage, deleteFirebaseAuthUser } from "../services/userDeleteService";
+
 
 import {
     Dialog,
@@ -65,6 +66,11 @@ const EditorComponent = ({ userEmail }) => {
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState("");
 
+    const [img, setImg] = useState(""); // Holds image URL
+    const [imgPath, setImgPath] = useState(""); // Firebase Storage path
+    const fileInputRef = useRef(null);
+    const [isUploading, setIsUploading] = useState(false);
+
     const handleSelect = (event, newValue) => {
         if (newValue) {
             console.log('Selected movie:', newValue);
@@ -72,9 +78,35 @@ const EditorComponent = ({ userEmail }) => {
         }
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
+        if (!userEmail) return;
 
+        // Check if location is set
+        if (!location) {
+            setSnackbarMessage("Location is required.");
+            setSnackbarOpen(true);
+            return;
+        }
+
+        try {
+            await saveUserData(userEmail, {
+                name: name || null,
+                desc: desc || null,
+                category: category || null,
+                smt: smt || null,
+                location, // already validated
+                img: img || ""
+            });
+
+            setSnackbarMessage("Successfully saved!");
+        } catch (error) {
+            console.error("Error saving document:", error);
+            setSnackbarMessage("Failed to save data.");
+        } finally {
+            setSnackbarOpen(true);
+        }
     };
+
 
     const handleDelete = () => {
         setOpenConfirm(true);
@@ -90,17 +122,40 @@ const EditorComponent = ({ userEmail }) => {
         }
     };
 
-    const handleConfirmDelete = () => {
+    const handleConfirmDelete = async () => {
         setOpenConfirm(false);
-        // Proceed with deletion logic
-        console.log("Item deleted!");
+
+        if (!userEmail) return;
+
+        try {
+            await deleteUserDataAndImage(userEmail);
+            setSnackbarMessage("User deleted successfully.");
+            setName(""); setDesc(""); setCategory(null); setSmt(null); setLocation(null); setImg(""); // reset form
+        } catch (error) {
+            console.error("Failed to delete user:", error);
+            setSnackbarMessage("Error deleting user.");
+        } finally {
+            setSnackbarOpen(true);
+        }
+
+        try {
+            // Delete Auth account
+            await deleteFirebaseAuthUser();
+
+            // Redirect or log out
+            setSnackbarMessage("User deleted successfully.");
+            setSnackbarOpen(true);
+            // Optionally: redirect to login
+        } catch (error) {
+            console.error("Error deleting user:", error);
+            setSnackbarMessage("Failed to delete user.");
+            setSnackbarOpen(true);
+        }
     };
 
     const handleCancelDelete = () => {
         setOpenConfirm(false);
     };
-
-    console.log(userEmail);
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -110,8 +165,6 @@ const EditorComponent = ({ userEmail }) => {
                 const docRef = doc(db, "locations", userEmail);
                 const docSnap = await getDoc(docRef);
 
-
-
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     setName(data.name || "");
@@ -119,6 +172,7 @@ const EditorComponent = ({ userEmail }) => {
                     setCategory(data.category || null);
                     setSmt(data.smt || null);
                     setLocation(data.location || null);
+                    setImg(data.img || "");
 
                     if (data.location) {
                         setIsLocation(true)
@@ -134,12 +188,73 @@ const EditorComponent = ({ userEmail }) => {
         fetchUserData();
     }, [userEmail]);
 
+    const handleImageChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file || !userEmail) return;
+
+        setIsUploading(true);
+
+        try {
+            // Check if user doc exists
+            const docRef = doc(db, "locations", userEmail);
+            const docSnap = await getDoc(docRef);
+
+            if (!docSnap.exists()) {
+                await setDoc(docRef, {
+                    name: null,
+                    desc: null,
+                    category: null,
+                    smt: null,
+                    location: null,
+                    img: null,
+                });
+            }
+
+            // Delete existing image if any
+            if (img) {
+                const path = decodeURIComponent(new URL(img).pathname.split("/o/")[1].split("?alt=")[0]);
+                await deleteUserImage(path);
+            }
+
+            // Upload new image
+            const { url, path } = await uploadUserImage(file, userEmail);
+            await updateUserImageUrl(userEmail, url);
+
+            setImg(url);
+            setImgPath(path);
+
+            setSnackbarMessage("Image uploaded");
+        } catch (error) {
+            console.error("Image change failed:", error);
+            setSnackbarMessage("Failed to upload image.");
+        } finally {
+            setSnackbarOpen(true);
+            setIsUploading(false);
+        }
+    };
+
+    const handleImageDelete = async () => {
+        if (!img || !userEmail) return;
+
+        try {
+            const path = decodeURIComponent(new URL(img).pathname.split("/o/")[1].split("?alt=")[0]);
+            await deleteUserImage(path);
+            await updateUserImageUrl(userEmail, "");
+            setImg("");
+        } catch (error) {
+            console.error("Image delete failed:", error);
+        } finally {
+            setSnackbarMessage("Image deleted");
+            setSnackbarOpen(true);
+        }
+    };
+
     useEffect(() => {
         if (!mapContainerRef.current) return;
 
         const map = new maplibregl.Map({
             container: mapContainerRef.current,
-            style: "https://demotiles.maplibre.org/style.json", // Free open-source style
+            style: "https://tiles.stadiamaps.com/styles/osm_bright.json", // Free open-source style
             center: [25.4858, 42.7339], // Centered on Bulgaria
             zoom: 6,
         });
@@ -219,7 +334,7 @@ const EditorComponent = ({ userEmail }) => {
 
             mapRef.current.flyTo({
                 center: [lng, lat],
-                zoom: 12,
+                zoom: 7,
                 essential: true,
             });
 
@@ -230,6 +345,7 @@ const EditorComponent = ({ userEmail }) => {
     const handleMarkNewLocation = () => {
         setSnackbarMessage("Click on the new place to change the location.");
         setSnackbarOpen(true);
+
 
         if (marker) {
             marker.remove(); // Remove current marker
@@ -249,12 +365,14 @@ const EditorComponent = ({ userEmail }) => {
 
             // Save location
             setLocation({ latitude: lngLat.lat, longitude: lngLat.lng });
-
+            // setLocation(new GeoPoint({ latitude: lngLat.lat, longitude: lngLat.lng }));
             // Deactivate drawing mode
             setIsDrawing(false);
 
             // Remove click listener
             map.off('click', onClick);
+
+            setIsLocation(true);
         };
 
         // Add one-time click listener
@@ -299,6 +417,46 @@ const EditorComponent = ({ userEmail }) => {
                 <Typography color="background.light" fontSize={10} fontStyle={'italic'} variant="subtitle2">
                     *Your data will save under <strong>{userEmail}</strong>
                 </Typography>
+
+                <div style={{ textAlign: "center", marginBottom: "20px" }}>
+                    <img
+                        src={img || "/imgs/default-avatar.jpg"}
+                        alt="User"
+                        style={{ width: "150px", height: "150px", borderRadius: "50%", objectFit: "cover" }}
+                    />
+                    {isUploading && (
+                        <div
+                            style={{
+                                backgroundColor: "rgba(141, 141, 141, 0.5)",
+                                color: "white",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: "16px",
+                                borderRadius: "5px"
+                            }}
+                        >
+                            Uploading...
+                        </div>
+                    )}
+
+                    <div style={{ marginTop: "10px" }}>
+                        <Button size="small" variant="contained" onClick={() => fileInputRef.current.click()}>Upload</Button>
+                        <Button size="small" variant="contained" color="error" onClick={handleImageDelete} style={{ marginLeft: "10px" }}>
+                            Delete
+                        </Button>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            style={{ display: "none" }}
+                            ref={fileInputRef}
+                            onChange={handleImageChange}
+                        />
+                    </div>
+                </div>
+
+                <Divider />
+
                 <List>
                     <TextField
                         className='input-field-1'
@@ -388,7 +546,7 @@ const EditorComponent = ({ userEmail }) => {
                         options={categories}
                         size="small"
                         value={category}
-                        onChange={(event, newValue) => setSmt(newValue)}
+                        onChange={(event, newValue) => setCategory(newValue)}
                         renderInput={(params) => <TextField {...params} label="Category" />}
                     />
                 </List>
@@ -401,12 +559,15 @@ const EditorComponent = ({ userEmail }) => {
                         Change location
                     </Button>
                 ) : (
-                    <Button fullWidth variant='outlined' sx={{ borderRadius: '10px', marginTop: '10px', marginBottom: "10px" }}>
+                    <Button fullWidth variant='outlined'
+                        onClick={handleMarkNewLocation}
+                        sx={{ borderRadius: '10px', marginTop: '10px', marginBottom: "10px" }}>
                         <MyLocationIcon sx={{ mr: 1 }} />
                         Mark the Location
                     </Button>
                 )}
                 <Divider />
+
 
                 <Button fullWidth onClick={handleSubmit} variant="contained" color="primary" sx={{ alignItems: 'center', marginTop: '10px', borderRadius: '10px' }} >Save</Button>
                 <Button fullWidth onClick={handleDelete} variant="contained" color="error" sx={{ alignItems: 'center', marginTop: '10px', borderRadius: '10px' }} >Delete Member</Button>
@@ -436,9 +597,13 @@ const EditorComponent = ({ userEmail }) => {
                 open={snackbarOpen}
                 autoHideDuration={5000}
                 onClose={() => setSnackbarOpen(false)}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
             >
-                <Alert onClose={() => setSnackbarOpen(false)} severity="info" sx={{ width: '100%' }}>
+                <Alert
+                    onClose={() => setSnackbarOpen(false)}
+                    variant="filled"
+                    severity="info"
+                    sx={{ width: '100%' }}>
                     {snackbarMessage}
                 </Alert>
             </Snackbar>
