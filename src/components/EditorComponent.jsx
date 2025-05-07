@@ -29,6 +29,8 @@ import {
     deleteUserImage,
     updateUserImageUrl
 } from "../services/userImageService";
+import { deleteUserDataAndImage, deleteFirebaseAuthUser } from "../services/userDeleteService";
+
 
 import {
     Dialog,
@@ -120,17 +122,40 @@ const EditorComponent = ({ userEmail }) => {
         }
     };
 
-    const handleConfirmDelete = () => {
+    const handleConfirmDelete = async () => {
         setOpenConfirm(false);
-        // Proceed with deletion logic
-        console.log("Item deleted!");
+
+        if (!userEmail) return;
+
+        try {
+            await deleteUserDataAndImage(userEmail);
+            setSnackbarMessage("User deleted successfully.");
+            setName(""); setDesc(""); setCategory(null); setSmt(null); setLocation(null); setImg(""); // reset form
+        } catch (error) {
+            console.error("Failed to delete user:", error);
+            setSnackbarMessage("Error deleting user.");
+        } finally {
+            setSnackbarOpen(true);
+        }
+
+        try {
+            // Delete Auth account
+            await deleteFirebaseAuthUser();
+
+            // Redirect or log out
+            setSnackbarMessage("User deleted successfully.");
+            setSnackbarOpen(true);
+            // Optionally: redirect to login
+        } catch (error) {
+            console.error("Error deleting user:", error);
+            setSnackbarMessage("Failed to delete user.");
+            setSnackbarOpen(true);
+        }
     };
 
     const handleCancelDelete = () => {
         setOpenConfirm(false);
     };
-
-    console.log(userEmail);
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -353,6 +378,22 @@ const EditorComponent = ({ userEmail }) => {
         // Add one-time click listener
         map.on('click', onClick);
     };
+
+    const handleDeleteUser = async () => {
+        if (!userEmail) return;
+
+        try {
+            await deleteUserDataAndImage(userEmail);
+            setSnackbarMessage("User deleted successfully.");
+            setName(""); setDesc(""); setCategory(null); setSmt(null); setLocation(null); setImg(""); // reset form
+        } catch (error) {
+            console.error("Failed to delete user:", error);
+            setSnackbarMessage("Error deleting user.");
+        } finally {
+            setSnackbarOpen(true);
+        }
+    };
+
 
 
     return (
