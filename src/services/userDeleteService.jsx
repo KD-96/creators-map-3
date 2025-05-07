@@ -28,6 +28,7 @@ export const deleteUserDataAndImage = async (userEmail) => {
     await deleteDoc(docRef);
 };
 
+// Delete gmail
 export const deleteFirebaseAuthUser = async () => {
     const auth = getAuth();
     const user = auth.currentUser;
