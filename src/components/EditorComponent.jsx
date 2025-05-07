@@ -379,22 +379,6 @@ const EditorComponent = ({ userEmail }) => {
         map.on('click', onClick);
     };
 
-    const handleDeleteUser = async () => {
-        if (!userEmail) return;
-
-        try {
-            await deleteUserDataAndImage(userEmail);
-            setSnackbarMessage("User deleted successfully.");
-            setName(""); setDesc(""); setCategory(null); setSmt(null); setLocation(null); setImg(""); // reset form
-        } catch (error) {
-            console.error("Failed to delete user:", error);
-            setSnackbarMessage("Error deleting user.");
-        } finally {
-            setSnackbarOpen(true);
-        }
-    };
-
-
 
     return (
         <div className="editor-container">
