@@ -254,7 +254,7 @@ const EditorComponent = ({ userEmail }) => {
 
         const map = new maplibregl.Map({
             container: mapContainerRef.current,
-            style: "https://tiles.stadiamaps.com/styles/osm_bright.json", // Free open-source style
+            style: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
             center: [25.4858, 42.7339], // Centered on Bulgaria
             zoom: 6,
         });
