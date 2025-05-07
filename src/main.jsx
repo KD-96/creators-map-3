@@ -23,10 +23,10 @@ const currentDomain = window.location.hostname;
 // }
 
 // ** Use this for block unknown domains
-if (!allowedDomains.some(domain => currentDomain.includes(domain))) {
-  document.body.innerHTML = "<h2>Access denied</h2>";
-  throw new Error("Unauthorized domain");
-}
+// if (!allowedDomains.some(domain => currentDomain.includes(domain))) {
+//   document.body.innerHTML = "<h2>Access denied</h2>";
+//   throw new Error("Unauthorized domain");
+// }
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
