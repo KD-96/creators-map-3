@@ -278,7 +278,7 @@ const ViewerComponent = () => {
                 ">
                   <div style="display: flex; align-items: center; margin-bottom: 12px;">
                     <img 
-                      src="${photo}" 
+                      src="${photo || '/imgs/default-avatar.jpg'}" 
                       alt="${name}" 
                       style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; margin-right: 12px;" 
                     />
