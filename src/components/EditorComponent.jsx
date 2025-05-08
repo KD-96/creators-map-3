@@ -71,6 +71,8 @@ const EditorComponent = ({ userEmail }) => {
     const fileInputRef = useRef(null);
     const [isUploading, setIsUploading] = useState(false);
 
+    const [isDeleting, setIsDeleting] = useState(false);
+
     const handleSelect = (event, newValue) => {
         if (newValue) {
             console.log('Selected movie:', newValue);
@@ -135,13 +137,14 @@ const EditorComponent = ({ userEmail }) => {
 
     const handleConfirmDelete = async () => {
         setOpenConfirm(false);
-
         if (!userEmail) return;
+
+        setIsDeleting(true); // Start dimmed loading
 
         try {
             await deleteUserDataAndImage(userEmail);
             setSnackbarMessage("User deleted successfully.");
-            setName(""); setDesc(""); setCategory(null); setSmt(null); setLocation(null); setImg(""); // reset form
+            setName(""); setDesc(""); setCategory(null); setSmt(null); setLocation(null); setImg("");
         } catch (error) {
             console.error("Failed to delete user:", error);
             setSnackbarMessage("Error deleting user.");
@@ -150,17 +153,14 @@ const EditorComponent = ({ userEmail }) => {
         }
 
         try {
-            // Delete Auth account
             await deleteFirebaseAuthUser();
-
-            // Redirect or log out
             setSnackbarMessage("User deleted successfully.");
-            setSnackbarOpen(true);
-            // Optionally: redirect to login
         } catch (error) {
             console.error("Error deleting user:", error);
             setSnackbarMessage("Failed to delete user.");
+        } finally {
             setSnackbarOpen(true);
+            setIsDeleting(false); // End loading
         }
     };
 
@@ -618,6 +618,24 @@ const EditorComponent = ({ userEmail }) => {
                     {snackbarMessage}
                 </Alert>
             </Snackbar>
+
+            {isDeleting && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    zIndex: 1300 // higher than dialogs/snackbars
+                }}>
+                    <div style={{ color: '#fff', fontSize: '18px' }}>
+                        Deleting user...
+                    </div>
+                    {/* Or use a spinner */}
+                    {/* <CircularProgress color="inherit" /> */}
+                </div>
+            )}
 
             <div
                 ref={mapContainerRef}
