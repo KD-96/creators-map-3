@@ -88,13 +88,25 @@ const EditorComponent = ({ userEmail }) => {
             return;
         }
 
+        // Validate required fields
+        if (!name || !category || !smt) {
+            const missingFields = [];
+            if (!name) missingFields.push("Name");
+            if (!category) missingFields.push("Category");
+            if (!smt) missingFields.push("Social Media");
+
+            setSnackbarMessage(`Please fill in: ${missingFields.join(", ")}`);
+            setSnackbarOpen(true);
+            return;
+        }
+
         try {
             await saveUserData(userEmail, {
-                name: name || null,
-                desc: desc || null,
-                category: category || null,
-                smt: smt || null,
-                location, // already validated
+                name,
+                desc: desc || null, // optional
+                category,
+                smt,
+                location,
                 img: img || ""
             });
 
@@ -106,7 +118,6 @@ const EditorComponent = ({ userEmail }) => {
             setSnackbarOpen(true);
         }
     };
-
 
     const handleDelete = () => {
         setOpenConfirm(true);
