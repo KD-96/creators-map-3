@@ -629,7 +629,7 @@ const EditorComponent = ({ userEmail }) => {
                     alignItems: 'center',
                     zIndex: 1300 // higher than dialogs/snackbars
                 }}>
-                    <div style={{ color: '#fff', fontSize: '18px' }}>
+                    <div style={{ color: '#fff', fontSize: '28px' }}>
                         Deleting user...
                     </div>
                     {/* Or use a spinner */}
