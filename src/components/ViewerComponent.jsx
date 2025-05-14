@@ -384,14 +384,14 @@ const ViewerComponent = () => {
                     onChange={(event, value) => setSelectedSocialMedia(value)}
                 />
 
-                <Autocomplete
+                {/* <Autocomplete
                     disablePortal
                     options={subs}
                     // onChange={handleSecondSelect}
                     size="small"
                     sx={{ padding: '10px' }}
                     renderInput={(params) => <TextField {...params} label="Subscribers/ followers" />}
-                />
+                /> */}
 
 
                 {/* Category Filter - added new */}
