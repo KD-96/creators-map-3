@@ -6,13 +6,13 @@ import { getStorage } from "firebase/storage";
 
 // Your Firebase config (replace with your own)
 const firebaseConfig = {
-    apiKey: "AIzaSyBWpiyXPJO7qxSE5osHtabVqPJjdGfqeUg",
-    authDomain: "kajabi-web-map.firebaseapp.com",
-    projectId: "kajabi-web-map",
-    storageBucket: "kajabi-web-map.firebasestorage.app",
-    messagingSenderId: "1060645406964",
-    appId: "1:1060645406964:web:e11f864abe04908c44f6a1",
-    measurementId: "G-BCEH9VY4TS",
+    apiKey: "Your data",
+    authDomain: "Your data",
+    projectId: "Your data",
+    storageBucket: "Your data",
+    messagingSenderId: "Your data",
+    appId: "Your data",
+    measurementId: "Your data",
 };
 
 // Initialize Firebase
