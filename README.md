@@ -1,22 +1,41 @@
-# Base maps
+# 🌍 creators-map-3
 
-https://demotiles.maplibre.org/style.json
+**Creator’s Location Map** — a collaborative web app that visualizes creators on an interactive map.  
+Users can explore, filter, and find other collaborators nearby, making it easy to connect and network by geography.
 
-https://tiles.stadiamaps.com/styles/osm_bright.json
+🔗 **Live Demo:** [https://creators-map-3.vercel.app](https://creators-map-3.vercel.app)
 
-https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json
-https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json
-https://basemaps.cartocdn.com/gl/positron-gl-style/style.json
+---
 
-# React + Vite
+## 🧭 Overview
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Purpose:**  
+The goal of this project is to help creators discover and connect with others around them.  
+It displays creators’ locations on an interactive map, allowing users to:
+- View details about each creator (name, links, bio)
+- Filter creators based on category or interests (if available)
+- Locate nearby collaborators using an intuitive map interface
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Features
 
-## Expanding the ESLint configuration
+- 🗺️ Interactive map showing creator locations  
+- 👤 Click markers to view creator details and links  
+- 📱 Responsive layout for desktop and mobile  
+- 🧩 Simple configuration to add or update creators  
+- 🌐 Deployable as a static site (currently hosted on Vercel)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## 🛠️ Tech Stack
+
+- **JavaScript (ES6)** – main application logic  
+- **Vite** – development server and build tool  
+- **HTML / CSS** – UI layout and styling  
+- **Mapping library:** (e.g., Leaflet, Mapbox, or similar – see `src/` for details)  
+- **Hosting:** Vercel  
+
+---
+
+
